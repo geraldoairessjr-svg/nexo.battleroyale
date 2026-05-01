@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO NETWORK | Secure Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nexo: { main: '#fbbf24', dark: '#0f172a', accent: '#f59e0b' }
+                    },
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], display: ['Orbitron', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0f172a; color: white; overflow-x: hidden; }
+        .hero-bg { background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); }
+        .hidden-view { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input { transition: all 0.2s; }
+        input:focus { border-color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+
+    <!-- NAVIGATION -->
+    <nav class="w-full bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="location.reload()">
+                <i class="fa-solid fa-sun text-nexo-main text-2xl group-hover:rotate-180 transition duration-700"></i>
+                <h1 class="text-3xl font-display font-bold text-white tracking-widest group-hover:text-nexo-main transition">NEXO</h1>
+            </div>
+            <div id="nav-user-info" class="hidden flex gap-4 items-center">
+                <div class="text-right">
+                    <p id="nav-nick" class="text-nexo-main font-bold leading-none"></p>
+                    <span id="nav-role" class="text-[10px] uppercase tracking-tighter text-slate-400">User</span>
+                </div>
+                <button onclick="logout()" class="text-xs text-red-500 border border-red-500/30 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition">SAIR</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow relative">
+
+        <!-- VIEW: AUTH (Login/Register) -->
+        <section id="view-auth" class="view-section min-h-[85vh] flex items-center justify-center p-4 fade-in">
+            <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md border border-slate-700 relative">
+                <div class="absolute top-0 left-0 w-full h-1 bg-nexo-main"></div>
+                
+                <!-- Toggle Tabs -->
+                <div class="flex mb-8 bg-slate-900 p-1 rounded">
+                    <button id="tab-login-btn" onclick="toggleAuthMode('login')" class="flex-1 py-2 rounded font-bold text-sm transition bg-slate-700">LOGIN</button>
+                    <button id="tab-reg-btn" onclick="toggleAuthMode('register')" class="flex-1 py-2 rounded font-bold text-sm transition text-slate-400">REGISTRO</button>
+                </div>
+
+                <div id="auth-container">
+                    <!-- Form Registro -->
+                    <div id="form-register" class="hidden-view space-y-3">
+                        <input id="reg-nick" placeholder="Nickname" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white outline-none">
+                        <input id="reg-pc" placeholder="Nome do Computador" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white outline-none">
+                        <input id="reg-pass" type="password" placeholder="Senha" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white outline-none">
+                        <button onclick="register()" class="w-full bg-nexo-main text-slate-900 font-black py-4 rounded mt-4 hover:scale-[1.02] active:scale-95 transition">CRIAR CONTA</button>
+                    </div>
+
+                    <!-- Form Login -->
+                    <div id="form-login" class="space-y-3">
+                        <input id="login-user" placeholder="Nickname ou ID (P_XXXX)" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white outline-none">
+                        <input id="login-pass" type="password" placeholder="Sua Senha" class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white outline-none">
+                        <button onclick="login()" class="w-full bg-slate-100 text-slate-900 font-black py-4 rounded mt-4 hover:bg-nexo-main transition">ENTRAR NO SISTEMA</button>
+                    </div>
+                </div>
+                
+                <p id="status" class="mt-6 text-center text-xs font-bold uppercase tracking-widest min-h-[1.25rem]"></p>
+            </div>
+        </section>
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="view-section hidden-view p-8 fade-in">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-slate-800 rounded-xl p-8 border border-slate-700 flex flex-col items-center text-center shadow-2xl">
+                    <div class="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center border-4 border-nexo-main mb-4 shadow-lg shadow-nexo-main/10">
+                        <i class="fa-solid fa-user-shield text-4xl"></i>
+                    </div>
+                    <h2 class="text-4xl font-display font-bold text-white uppercase tracking-tight" id="ui-nick">Usuário</h2>
+                    <p class="text-nexo-main font-mono text-sm mb-6" id="ui-id">ID: ...</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg mb-8">
+                        <div class="bg-slate-900/50 p-4 rounded border border-slate-700">
+                            <span class="text-[10px] text-slate-500 block uppercase font-bold">Estação</span>
+                            <span id="ui-pc" class="font-bold">...</span>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded border border-slate-700">
+                            <span class="text-[10px] text-slate-500 block uppercase font-bold">Nível de Acesso</span>
+                            <span id="ui-role" class="font-bold text-white">...</span>
+                        </div>
+                    </div>
+
+                    <!-- Botão Admin (Oculto por padrão) -->
+                    <button id="btn-admin-access" onclick="switchView('view-admin')" class="hidden-view w-full max-w-lg bg-red-600 hover:bg-red-500 py-4 rounded font-black tracking-widest transition flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-lock-open"></i> TERMINAL ADMINISTRATIVO
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: ADMIN PANEL -->
+        <section id="view-admin" class="view-section hidden-view p-8 fade-in">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex justify-between items-center mb-8 bg-slate-800 p-6 rounded-lg border-l-4 border-nexo-main">
+                    <div>
+                        <h2 class="text-3xl font-display font-black text-white">NETWORK OVERWATCH</h2>
+                        <p class="text-slate-400 text-sm italic">Painel Restrito: Visualização em tempo real da infraestrutura</p>
+                    </div>
+                    <button onclick="switchView('view-dashboard')" class="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded font-bold transition">VOLTAR</button>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-2xl">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-800 text-nexo-main uppercase font-black text-[11px] tracking-widest border-b border-slate-700">
+                            <tr>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">ID / Nickname</th>
+                                <th class="px-6 py-4">Desktop Host</th>
+                                <th class="px-6 py-4">Permissão</th>
+                                <th class="px-6 py-4 text-right">Heartbeat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvesaAeHwF9CzBmyjlHqW8uWQ-uzyJH1Y",
+  authDomain: "gen-lang-client-0748631824.firebaseapp.com",
+  projectId: "gen-lang-client-0748631824",
+  storageBucket: "gen-lang-client-0748631824.firebasestorage.app",
+  messagingSenderId: "335124351068",
+  appId: "1:335124351068:web:86d8548299240fd8097e99"
+};
+
+const appFb = initializeApp(firebaseConfig);
+const db = getFirestore(appFb);
+
+// --- ESTADO GLOBAL ---
+let currentUserData = null;
+
+// --- NAVEGAÇÃO E UI ---
+window.switchView = (viewId) => {
+    // Bloqueio de Segurança para o Painel Admin
+    if (viewId === 'view-admin' && currentUserData?.role !== 'admin') {
+        alert("ACESSO NEGADO: Você não possui privilégios de administrador.");
+        return;
+    }
+    document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden-view'));
+    document.getElementById(viewId).classList.remove('hidden-view');
+};
+
+window.toggleAuthMode = (mode) => {
+    const isLogin = mode === 'login';
+    document.getElementById('form-login').classList.toggle('hidden-view', !isLogin);
+    document.getElementById('form-register').classList.toggle('hidden-view', isLogin);
+    document.getElementById('tab-login-btn').className = isLogin ? 'flex-1 py-2 rounded font-bold text-sm bg-slate-700' : 'flex-1 py-2 rounded font-bold text-sm text-slate-400';
+    document.getElementById('tab-reg-btn').className = !isLogin ? 'flex-1 py-2 rounded font-bold text-sm bg-slate-700' : 'flex-1 py-2 rounded font-bold text-sm text-slate-400';
+    setStatus("");
+};
+
+function setStatus(msg, color = "text-nexo-main") {
+    const s = document.getElementById("status");
+    s.innerText = msg;
+    s.className = `mt-6 text-center text-xs font-bold uppercase tracking-widest ${color}`;
+}
+
+// --- LÓGICA DE REGISTRO ---
+window.register = async () => {
+    const nick = document.getElementById("reg-nick").value.trim();
+    const pc = document.getElementById("reg-pc").value.trim();
+    const pass = document.getElementById("reg-pass").value.trim();
+
+    if (!nick || !pc || !pass) {
+        setStatus("PREENCHA TODOS OS CAMPOS", "text-red-500");
+        return;
+    }
+
+    try {
+        const id = "P_" + Math.random().toString(36).slice(2, 6).toUpperCase();
+        const userData = {
+            nick,
+            desktop: pc,
+            password: pass,
+            role: "user", // Padrão é user
+            isHost: false,
+            lastPing: Date.now()
+        };
+
+        await setDoc(doc(db, "players", id), userData);
+        localStorage.setItem("playerId", id);
+        initSession(id, userData);
+        setStatus("CONTA CRIADA COM SUCESSO!", "text-green-500");
+    } catch (e) {
+        console.error(e);
+        setStatus("ERRO AO CRIAR CONTA", "text-red-500");
+    }
+};
+
+// --- LÓGICA DE LOGIN (DUAL: NICK OU ID) ---
+window.login = async () => {
+    const userInput = document.getElementById("login-user").value.trim();
+    const passInput = document.getElementById("login-pass").value.trim();
+
+    if (!userInput || !passInput) {
+        setStatus("INSIRA AS CREDENCIAIS", "text-red-500");
+        return;
+    }
+
+    setStatus("AUTENTICANDO...", "animate-pulse");
+
+    try {
+        let targetDoc = null;
+        let targetId = null;
+
+        // 1. Tentar busca por ID direto
+        const snapById = await getDoc(doc(db, "players", userInput));
+        if (snapById.exists()) {
+            targetDoc = snapById.data();
+            targetId = userInput;
+        } else {
+            // 2. Tentar busca por Nickname
+            const q = query(collection(db, "players"), where("nick", "==", userInput));
+            const querySnap = await getDocs(q);
+            if (!querySnap.empty) {
+                targetDoc = querySnap.docs[0].data();
+                targetId = querySnap.docs[0].id;
+            }
+        }
+
+        if (targetDoc && targetDoc.password === passInput) {
+            localStorage.setItem("playerId", targetId);
+            initSession(targetId, targetDoc);
+        } else {
+            setStatus("ID/NICK OU SENHA INCORRETOS", "text-red-500");
+        }
+    } catch (e) {
+        console.error(e);
+        setStatus("ERRO DE CONEXÃO", "text-red-500");
+    }
+};
+
+window.logout = () => {
+    localStorage.removeItem("playerId");
+    location.reload();
+};
+
+// --- INICIALIZAÇÃO DA SESSÃO ---
+function initSession(id, data) {
+    currentUserData = data;
+    
+    document.getElementById("nav-user-info").classList.remove("hidden");
+    document.getElementById("nav-nick").innerText = data.nick;
+    document.getElementById("nav-role").innerText = data.role;
+    
+    document.getElementById("ui-nick").innerText = data.nick;
+    document.getElementById("ui-id").innerText = "ID: " + id;
+    document.getElementById("ui-pc").innerText = data.desktop;
+    document.getElementById("ui-role").innerText = data.role.toUpperCase();
+
+    // Habilitar botão Admin se for admin
+    if (data.role === 'admin') {
+        document.getElementById("btn-admin-access").classList.remove("hidden-view");
+    }
+
+    switchView('view-dashboard');
+    startHeartbeat(id);
+}
+
+// --- HEARTBEAT & MONITORAMENTO ---
+function startHeartbeat(id) {
+    setInterval(async () => {
+        try { await updateDoc(doc(db, "players", id), { lastPing: Date.now() }); } catch {}
+    }, 5000);
+
+    onSnapshot(collection(db, "players"), (snapshot) => {
+        const players = [];
+        snapshot.forEach(doc => players.push({ id: doc.id, ...doc.data() }));
+        
+        // Atualizar se eu for Admin
+        if (currentUserData?.role === 'admin') {
+            updateAdminTable(players);
+        }
+    });
+}
+
+function updateAdminTable(players) {
+    const tbody = document.getElementById("admin-table-body");
+    tbody.innerHTML = "";
+    const now = Date.now();
+
+    players.forEach(p => {
+        const isOnline = (now - p.lastPing) < 12000;
+        const row = `
+            <tr class="hover:bg-slate-800/50 transition">
+                <td class="px-6 py-4">
+                    <span class="${isOnline ? 'text-emerald-500' : 'text-slate-600'} text-[10px] font-black uppercase">
+                        ${isOnline ? '● Online' : '○ Offline'}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="font-mono text-nexo-main text-xs">${p.id}</div>
+                    <div class="font-bold text-white">${p.nick}</div>
+                </td>
+                <td class="px-6 py-4 text-slate-400 font-mono text-xs">${p.desktop}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.role === 'admin' ? 'bg-red-900/30 text-red-400 border border-red-800' : 'bg-slate-800 text-slate-400'}">
+                        ${p.role.toUpperCase()}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-right text-slate-500 font-mono text-[10px]">
+                    ${new Date(p.lastPing).toLocaleTimeString()}
+                </td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+// Auto-login
+window.addEventListener('load', async () => {
+    const savedId = localStorage.getItem("playerId");
+    if (savedId) {
+        const snap = await getDoc(doc(db, "players", savedId));
+        if (snap.exists()) initSession(savedId, snap.data());
+    }
+});
+</script>
+</body>
+</html>
