@@ -105,10 +105,19 @@
                         </div>
                     </div>
 
-                    <!-- Botão Admin (Oculto por padrão) -->
-                    <button id="btn-admin-access" onclick="switchView('view-admin')" class="hidden-view w-full max-w-lg bg-red-600 hover:bg-red-500 py-4 rounded font-black tracking-widest transition flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-lock-open"></i> TERMINAL ADMINISTRATIVO
-                    </button>
+                    <!-- BOTÃO DE DOWNLOAD DO LAUNCHER -->
+                    <div class="w-full max-w-lg space-y-4">
+                        <a href="https://www.dropbox.com/scl/fi/h6ryg5erdwz44agi2osf3/Nexo-Launcher-1.0.0.exe?rlkey=k5j7ql918hkfhgqcnn14m46q1&st=i5f2v2ki&dl=1" 
+                           class="flex items-center justify-center gap-3 w-full bg-nexo-main hover:bg-nexo-accent text-slate-900 font-black py-5 rounded-lg shadow-xl shadow-nexo-main/20 transform transition hover:-translate-y-1 active:scale-95">
+                            <i class="fa-solid fa-download text-xl animate-bounce"></i>
+                            BAIXAR NEXO LAUNCHER v1.0.0
+                        </a>
+                        
+                        <!-- Botão Admin (Oculto por padrão) -->
+                        <button id="btn-admin-access" onclick="switchView('view-admin')" class="hidden-view w-full bg-red-600 hover:bg-red-500 py-4 rounded font-black tracking-widest transition flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-lock-open"></i> TERMINAL ADMINISTRATIVO
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -146,16 +155,16 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, query, where, getDocs
+    getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDvesaAeHwF9CzBmyjlHqW8uWQ-uzyJH1Y",
-  authDomain: "gen-lang-client-0748631824.firebaseapp.com",
-  projectId: "gen-lang-client-0748631824",
-  storageBucket: "gen-lang-client-0748631824.firebasestorage.app",
-  messagingSenderId: "335124351068",
-  appId: "1:335124351068:web:86d8548299240fd8097e99"
+    apiKey: "AIzaSyDvesaAeHwF9CzBmyjlHqW8uWQ-uzyJH1Y",
+    authDomain: "gen-lang-client-0748631824.firebaseapp.com",
+    projectId: "gen-lang-client-0748631824",
+    storageBucket: "gen-lang-client-0748631824.firebasestorage.app",
+    messagingSenderId: "335124351068",
+    appId: "1:335124351068:web:86d8548299240fd8097e99"
 };
 
 const appFb = initializeApp(firebaseConfig);
@@ -166,7 +175,6 @@ let currentUserData = null;
 
 // --- NAVEGAÇÃO E UI ---
 window.switchView = (viewId) => {
-    // Bloqueio de Segurança para o Painel Admin
     if (viewId === 'view-admin' && currentUserData?.role !== 'admin') {
         alert("ACESSO NEGADO: Você não possui privilégios de administrador.");
         return;
@@ -207,7 +215,7 @@ window.register = async () => {
             nick,
             desktop: pc,
             password: pass,
-            role: "user", // Padrão é user
+            role: "user",
             isHost: false,
             lastPing: Date.now()
         };
@@ -222,7 +230,7 @@ window.register = async () => {
     }
 };
 
-// --- LÓGICA DE LOGIN (DUAL: NICK OU ID) ---
+// --- LÓGICA DE LOGIN ---
 window.login = async () => {
     const userInput = document.getElementById("login-user").value.trim();
     const passInput = document.getElementById("login-pass").value.trim();
@@ -238,13 +246,11 @@ window.login = async () => {
         let targetDoc = null;
         let targetId = null;
 
-        // 1. Tentar busca por ID direto
         const snapById = await getDoc(doc(db, "players", userInput));
         if (snapById.exists()) {
             targetDoc = snapById.data();
             targetId = userInput;
         } else {
-            // 2. Tentar busca por Nickname
             const q = query(collection(db, "players"), where("nick", "==", userInput));
             const querySnap = await getDocs(q);
             if (!querySnap.empty) {
@@ -283,7 +289,6 @@ function initSession(id, data) {
     document.getElementById("ui-pc").innerText = data.desktop;
     document.getElementById("ui-role").innerText = data.role.toUpperCase();
 
-    // Habilitar botão Admin se for admin
     if (data.role === 'admin') {
         document.getElementById("btn-admin-access").classList.remove("hidden-view");
     }
@@ -292,7 +297,7 @@ function initSession(id, data) {
     startHeartbeat(id);
 }
 
-// --- HEARTBEAT & MONITORAMENTO ---
+// --- HEARTBEAT ---
 function startHeartbeat(id) {
     setInterval(async () => {
         try { await updateDoc(doc(db, "players", id), { lastPing: Date.now() }); } catch {}
@@ -301,8 +306,6 @@ function startHeartbeat(id) {
     onSnapshot(collection(db, "players"), (snapshot) => {
         const players = [];
         snapshot.forEach(doc => players.push({ id: doc.id, ...doc.data() }));
-        
-        // Atualizar se eu for Admin
         if (currentUserData?.role === 'admin') {
             updateAdminTable(players);
         }
@@ -342,7 +345,6 @@ function updateAdminTable(players) {
     });
 }
 
-// Auto-login
 window.addEventListener('load', async () => {
     const savedId = localStorage.getItem("playerId");
     if (savedId) {
